@@ -2,9 +2,11 @@
 
 use App\Http\Controllers as API;
 use App\Http\Controllers\AdminController as Admin;
+use App\Http\Controllers\Website as Website;
 use App\Http\Controllers\AdminController\CampaignCategoryController;
 use App\Http\Controllers\FileStorageController;
 use App\Http\Controllers\Website\Dashboard\CampaignController;
+use App\Http\Controllers\Website\DonationController;
 use App\Http\Controllers\Website\WebPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +74,13 @@ Route::group(['middleware' => 'api', 'prefix' => 'projects'], function () {
     Route::delete("/delete/{id}", [Admin\ProjectController::class, "destroy"]);
 });
 
+Route::group(['middleware' => 'api', 'prefix' => 'campaigns'], function () {
+    Route::get("/", [Admin\CampaignController::class, "index"]);
+    Route::post("/", [Admin\CampaignController::class, "store"]);
+    Route::get("/detail", [Admin\CampaignController::class, "show"]);
+    Route::delete("/delete/{id}", [Admin\CampaignController::class, "destroy"]);
+});
+
 Route::group(['middleware' => 'api', 'prefix' => 'testimonials'], function () {
     Route::get("/", [Admin\TestimonialController::class, "index"]);
     Route::post("/", [Admin\TestimonialController::class, "store"]);
@@ -109,12 +118,31 @@ Route::post("/save-image/{dir}", [FileStorageController::class, "uploadImage"]);
 Route::post("/save-content-image", [FileStorageController::class, "uploadContent"]);
 Route::delete("/save-image/{dir}", [FileStorageController::class, "deleteImage"]);
 Route::get("/save-image/{dir}", [FileStorageController::class, "previewImage"]);
-// Website
+
+
+// Website Public
+
+Route::prefix('/web')->group(function () {
+    Route::get("/feed-list", [Website\FeedController::class, "index"]);
+    Route::group(["prefix" => "donation"], function() {
+        Route::post("/", [DonationController::class, "donation"]);
+        Route::get("/donor-list", [DonationController::class, "donationList"]);
+    });
+    Route::group(["prefix" => "campaign"], function() {
+        Route::get("/dropdown", [Website\CampaignController::class, "dropdown"]);
+        Route::get("/home", [Website\CampaignController::class, "homeCampaign"]);
+        Route::get("/project", [Website\CampaignController::class, "projectCampaign"]);
+        Route::get("/project/{id}", [Website\CampaignController::class, "campaignDetail"]);
+        Route::get("/donor-list/{campaignId}", [Website\CampaignController::class, "getAllDonorByCampaign"]);
+    });
+});
+
 Route::get("/contact-us-page", [WebPageController::class, "contactUs"]);
 Route::post("/sending-email", [WebPageController::class, "sendingEmail"]);
 Route::get("/privacy-policy-page", [WebPageController::class, "privacyPolicy"]);
 Route::get("/term-service-page", [WebPageController::class, "termService"]);
 
+// Website Private
 // User Dashboard
 Route::get("/category-dropdown", [CampaignController::class, "getDropdown"]);
 Route::group(['middleware' => 'api', 'prefix' => 'campaign-web'], function () {

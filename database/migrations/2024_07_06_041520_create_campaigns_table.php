@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigInteger("creatorId");
             $table->bigInteger("campaignCategoryId")->nullable();
             $table->string("location")->nullable();
+            $table->string("city")->nullable();
             $table->string("campaignTile")->nullable();
             $table->string("campaignTileKm")->nullable();
             $table->text("fullStory")->nullable();
@@ -51,6 +52,14 @@ return new class extends Migration
             $table->integer("ordering")->default(0);
             $table->boolean("isActive")->default(false);
             $table->timestamps();
+            $table->boolean("isInNeed")->default(false);
+            $table->boolean("isTrending")->default(false);
+            $table->boolean("isLatest")->default(false);
+            $table->double("totalTip")->default(0.0);
+            $table->double("totalRaised")->default(0.0);
+            $table->integer("totalDonation")->default(0);
+            $table->integer("totalReaction")->default(0);
+            $table->integer("totalShare")->default(0);
         });
     }
 

@@ -14,7 +14,10 @@ class CampaignController extends Controller
 {
     public function getDropdown()
     {
-        $categories = CampaignCategory::where("isActive", true)->orderBy("ordering")->get();
+        $categories = CampaignCategory::where("isActive", true)->get();
+        $categories->each(function($query){
+            $query->countProject = Campaign::where("status", "COMPLETE")->where("campaignCategoryId", $query->id)->count();
+        });
         return response()->json([
             'message' => 'Get Dropdown',
             'status' => 'success',
@@ -43,6 +46,9 @@ class CampaignController extends Controller
             'status' => 'success',
             'data' => $data,
             'record' => [
+                "totalCampaign" => Campaign::where("creatorId", auth()->id())->count(),
+                "totalRaised" => Campaign::where("creatorId", auth()->id())->sum("totalRaised"),
+                "totalDonation" => Campaign::where("creatorId", auth()->id())->sum("totalDonation"),
                 "pending" => Campaign::where("creatorId", auth()->id())->where("status", "PENDING")->count(),
                 "draft" => Campaign::where("creatorId", auth()->id())->where("status", "DRAFT")->count(),
                 "complete" => Campaign::where("creatorId", auth()->id())->where("status", "COMPLETE")->count(),
@@ -63,6 +69,7 @@ class CampaignController extends Controller
             "creatorId" => auth()->id(),
             "campaignCategoryId" => $request->campaignCategory ?  $request->campaignCategory["value"] : null,
             "location" => request("location", null),
+            "city" => request("city", null),
             "campaignTile" => request("campaignTile", null),
             "campaignTileKm" => request("campaignTileKm", null),
             "fullStory" => request("fullStory", null),
@@ -120,6 +127,10 @@ class CampaignController extends Controller
     public function show(Request $request)
     {
         $model = Campaign::findOrFail($request->id);
+        $model->campaignGallery = json_decode($model->campaignGallery);
+        $campaignCategory = CampaignCategory::where("id", $model->campaignCategoryId)->first();
+        $model->campaignCategory = $campaignCategory ? ["value" => $campaignCategory->id, "label" => $campaignCategory->name] : null;
+        $model->documentType = $model->documentType == "identity" ? ["value" => "identity", "label" => "Identity Card"] : ["value" => "passport", "label" => "Passport Card"];
         return response()->json([
             'message' => 'Get detail success.',
             'status' => 'success',

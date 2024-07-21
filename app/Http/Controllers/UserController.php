@@ -15,7 +15,8 @@ class UserController extends Controller
     public function index()
     {
 
-        $data = User::select("id", "name", "email", "phoneNumber", "userRole", "image", "isActive")
+        $data = User::select("id", "name", "email", "phoneNumber", "image", "isActive")
+            ->where("isAdmin", true)
             ->where('id', '!=', auth()->user()->id)
             ->where('id', '!=', 1)
             ->orderBy('id', 'desc')->get();

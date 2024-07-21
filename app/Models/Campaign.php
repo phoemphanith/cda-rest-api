@@ -12,6 +12,7 @@ class Campaign extends Model
         "creatorId",
         "campaignCategoryId",
         "location",
+        "city",
         "campaignTile",
         "campaignTileKm",
         "fullStory",
@@ -45,6 +46,9 @@ class Campaign extends Model
         "profile",
         "status",
         "ordering",
-        "isActive"
+        "isActive",
+        "isInNeed",
+        "isTrending",
+        "isLatest"
     ];
 }
