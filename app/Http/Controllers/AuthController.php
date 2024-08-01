@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Carbon\Carbon;
-use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use NextApps\VerificationCode\VerificationCode;
 use RuntimeException;
+use Twilio\Rest\Client;
 
 class AuthController extends Controller
 {
@@ -19,7 +19,13 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'loginWeb', 'registerWeb', 'googleAuth', 'sendEmailVerifyCode', 'getEmailVerifyCode']]);
+        $this->middleware('auth:api', [
+            'except' => [
+                'login', 'register', 'loginWeb', 'registerWeb', 'googleAuth', 'sendEmailVerifyCode', 
+                'getEmailVerifyCode', 'sendPhonNumberVerifyCode', 
+                'verifyPhoneCode', 'findUserAccountIsExited', 'changePassword'
+            ]
+        ]);
     }
     /**
      * Get a JWT via given credentials.
@@ -55,7 +61,7 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => 'fail', 'message' => "Username or password is incorrect!"], 202);
         }
-        
+
         $credential = array(
             "email" => $request->userLogin,
             "password" => $request->userAuth,
@@ -117,9 +123,9 @@ class AuthController extends Controller
         $user = User::create(array_merge(
             $validator->validated(),
             [
-                'password' => bcrypt($request->password), 
+                'password' => bcrypt($request->password),
                 'joinAt' => Carbon::now(),
-                'name' => $request->firstName. " " .$request->lastName,
+                'name' => $request->firstName . " " . $request->lastName,
             ]
         ));
         return response()->json([
@@ -142,13 +148,13 @@ class AuthController extends Controller
 
         $exitUser = User::where("email", $request->email)->where("loginWith", 3)->first();
 
-        if(!$exitUser) {
-            $user = User::create(array_merge(
+        if (!$exitUser) {
+            User::create(array_merge(
                 $validator->validated(),
                 [
-                    'password' => bcrypt("GOOGLE@168"), 
+                    'password' => bcrypt("GOOGLE@168"),
                     'joinAt' => Carbon::now(),
-                    'name' => $request->firstName. " " .$request->lastName,
+                    'name' => $request->firstName . " " . $request->lastName,
                     'image' => $request->image
                 ]
             ));
@@ -156,12 +162,13 @@ class AuthController extends Controller
 
         $credential = array(
             "email" => $request->email,
-            "password" => "GOOGLE@168"
+            "password" => "GOOGLE@168",
+            "loginWith" => 3
         );
 
         $token = auth()->attempt($credential);
 
-        
+
         return $this->createNewToken($token);
     }
 
@@ -202,6 +209,22 @@ class AuthController extends Controller
             "data" => $newUser
         ]);
     }
+    public function changeUserInfo(Request $request)
+    {
+        $user = auth()->user();
+        $newUser = User::find($user->id);
+        $newUser->update([
+            'firstName' => request("firstName", $user->firstName),
+            'lastName' => request("lastName", $user->lastName),
+            'email' => request("email", $user->email),
+            'phoneNumber' => request('phoneNumber', $user->phoneNumber),
+            'image' => request('image', $user->image),
+        ]);
+        return response()->json([
+            "message" => 'success',
+            "data" => $newUser
+        ]);
+    }
 
     public function changeAuth(Request $request)
     {
@@ -213,6 +236,58 @@ class AuthController extends Controller
         return response()->json([
             "message" => 'success',
             "data" => $newUser
+        ]);
+    }
+
+    public function sendPhonNumberVerifyCode(Request $request)
+    {
+        $data = $request->validate([
+            'phoneNumber' => ['required', 'numeric'],
+        ]);
+        try {
+            /* Get credentials from .env */
+            $token = getenv("TWILIO_AUTH_TOKEN");
+            $twilio_sid = getenv("TWILIO_SID");
+            $twilio_verify_sid = getenv("TWILIO_VERIFY_SID");
+            $twilio = new Client($twilio_sid, $token);
+            $twilio->verify->v2->services($twilio_verify_sid)
+                ->verifications
+                ->create($data['phoneNumber'], "sms");
+        } catch (RuntimeException $th) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Send Code is failed',
+            ]);
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Send Code is Successfully',
+        ]);
+    }
+
+    public function verifyPhoneCode(Request $request)
+    {
+        $data = $request->validate([
+            'verificationCode' => ['required', 'numeric'],
+            'phoneNumber' => ['required', 'string'],
+        ]);
+        /* Get credentials from .env */
+        $token = getenv("TWILIO_AUTH_TOKEN");
+        $twilio_sid = getenv("TWILIO_SID");
+        $twilio_verify_sid = getenv("TWILIO_VERIFY_SID");
+        $twilio = new Client($twilio_sid, $token);
+        $verification = $twilio->verify->v2->services($twilio_verify_sid)
+            ->verificationChecks
+            ->create(['code' => $data['verificationCode'], 'to' => $data['phoneNumber']]);
+        if ($verification->valid) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Send Code is Successfully',
+            ]);
+        }
+        return response()->json([
+            'status' => 'fail',
+            'message' => 'Invalid verification code entered!',
         ]);
     }
 
@@ -235,7 +310,7 @@ class AuthController extends Controller
     public function getEmailVerifyCode(Request $request)
     {
         try {
-            if(VerificationCode::verify($request->code, $request->email) == 1) {
+            if (VerificationCode::verify($request->code, $request->email) == 1) {
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Verify Code is Successfully',
@@ -250,6 +325,57 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'fail',
                 'message' => $th->getMessage()
+            ]);
+        }
+    }
+
+    public function findUserAccountIsExited(Request $request)
+    {
+        $loginWith = request("loginWith", 1);
+        $username = request("userLogin");
+
+        $user = User::where("phoneNumber", "+855" . substr($username, 1))->first();
+
+        if ($loginWith == 2) {
+            $user = User::where("email", $username)->first();
+        }
+
+        if ($user) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User is exited',
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'fail',
+                'message' => "Phone number / Email is not exited.".substr($username, 1)
+            ]);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        $username = request("username");
+        $password = request("password");
+        $loginWith = request("loginWith", 1);
+
+        $user = User::where("phoneNumber", "+855" . substr($username, 1))->first();
+
+        if ($loginWith == 2) {
+            $user = User::where("email", $username)->first();
+        }
+
+        if ($user) {
+            $user->password = bcrypt($password);
+            $user->save();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User update password successfully.',
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'fail',
+                'message' => "Phone number / Email is not exited."
             ]);
         }
     }

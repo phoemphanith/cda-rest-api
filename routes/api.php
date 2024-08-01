@@ -35,8 +35,13 @@ Route::group([
     Route::get('/user-profile', [API\AuthController::class, 'userProfile']);
     Route::put('/update-user', [API\AuthController::class, 'updateUser']);
     Route::put('/change-password', [API\AuthController::class, 'changeAuth']);
+    Route::post('/send-phone-code', [API\AuthController::class, 'sendPhonNumberVerifyCode']);
     Route::post('/send-code', [API\AuthController::class, 'sendEmailVerifyCode']);
     Route::post('/verify-code', [API\AuthController::class, 'getEmailVerifyCode']);
+    Route::post('/verify-phone-code', [API\AuthController::class, 'verifyPhoneCode']);
+    Route::post("/change-user-info", [API\AuthController::class, "changeUserInfo"]);
+    Route::post("/check-account", [API\AuthController::class, "findUserAccountIsExited"]);
+    Route::post("/forget-pass", [API\AuthController::class, "changePassword"]);
 });
 
 Route::group(['middleware' => 'api', 'prefix' => 'users'], function () {
@@ -127,6 +132,7 @@ Route::prefix('/web')->group(function () {
     Route::group(["prefix" => "donation"], function() {
         Route::post("/", [DonationController::class, "donation"]);
         Route::get("/donor-list", [DonationController::class, "donationList"]);
+        Route::get("/list-all-donations", [DonationController::class, "listAllDonations"]);
     });
     Route::group(["prefix" => "campaign"], function() {
         Route::get("/dropdown", [Website\CampaignController::class, "dropdown"]);

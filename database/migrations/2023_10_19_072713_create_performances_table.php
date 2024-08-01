@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('performances', function (Blueprint $table) {
             $table->id();
-            $table->string("title");
+            $table->string("title")->nullable();
+            $table->string("titleKh")->nullable();
             $table->text("description")->nullable();
+            $table->text("descriptionKh")->nullable();
             $table->string("image")->nullable();
             $table->integer("ordering")->default(0);
             $table->boolean("isActive")->default(false);

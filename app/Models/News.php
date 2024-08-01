@@ -10,10 +10,14 @@ class News extends Model
     use HasFactory;
     protected $fillable = [
         "title",
+        "titleKh",
         "image",
         "summary",
+        "summaryKh",
         "content",
+        "contentKh",
         "isDisplayHomepage",
+        "type",
         "ordering",
         "isActive",
     ];

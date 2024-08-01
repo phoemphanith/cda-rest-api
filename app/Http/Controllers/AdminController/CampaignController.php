@@ -45,6 +45,7 @@ class CampaignController extends Controller
             "isInNeed" => request("isInNeed", false),
             "isTrending" => request("isTrending", false),
             "isLatest" => request("isLatest", false),
+            "allowEdit" => request("allowEdit", false),
             "status" => request("status", "PENDING"),
             "ordering" => request("ordering", 0)
         ];

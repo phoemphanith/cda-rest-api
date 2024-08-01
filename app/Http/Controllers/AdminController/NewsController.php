@@ -16,7 +16,7 @@ class NewsController extends Controller
     public function index()
     {
 
-        $data = News::select("id", "title", "summary", "image", "isDisplayHomepage", "isActive", "ordering")->orderBy('id', 'desc')->get();
+        $data = News::select("id", "title", "summary", "image", "isDisplayHomepage", "isActive", "ordering", "type")->orderBy('id', 'desc')->get();
 
         return response()->json([
             'message' => 'Get list success.',
@@ -32,9 +32,13 @@ class NewsController extends Controller
     {
         $dataForm = [
             "title" => request("title", ""),
+            "titleKh" => request("titleKh", ""),
             "image" => request("image", null),
             "summary" => request("summary", ""),
+            "summaryKh" => request("summaryKh", ""),
             "content" => request("content", ""),
+            "contentKh" => request("contentKh", ""),
+            "type" => request("type", "NEWS"),
             "isDisplayHomepage" => request("isDisplayHomepage", false),
             "ordering" => request("ordering", 0),
             'isActive' => request("isActive", true)

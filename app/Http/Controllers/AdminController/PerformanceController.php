@@ -32,7 +32,9 @@ class PerformanceController extends Controller
     {
         $dataForm = [
             "title" => request("title", ""),
+            "titleKh" => request("titleKh", ""),
             "description" => request("description", ""),
+            "descriptionKh" => request("descriptionKh", ""),
             "image" => request("image", null),
             "ordering" => request("ordering", 0),
             'isActive' => request("isActive", true)

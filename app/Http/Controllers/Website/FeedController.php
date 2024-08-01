@@ -9,12 +9,13 @@ use App\Models\Donation;
 use App\Models\Feed;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class FeedController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $feeList = Feed::orderBy("id", "DESC")->get();
+        $feeList = Feed::orderBy("created_at", "DESC")->paginate(request("limit", 10));
         $feeList->each(function($feed) {
             $campaign = Campaign::where("id", $feed->campaignId)->first();
             $campaign->startAt = Carbon::parse($campaign->startDate)->format('jS F,  Y');
@@ -24,7 +25,8 @@ class FeedController extends Controller
             $feed->campaign = $campaign;
             $feed->creator = User::select("id", "name", "image")->where("id", $feed->creatorId)->first();
             $feed->donation = Donation::where("id", $feed->donationId)->first();
+            $feed->publishedAt = Carbon::parse($feed->publishedAt)->format('jS F, Y | H:i A');
         });
-        return response()->json($feeList);
+        return response()->json($feeList->items());
     }
 }

@@ -12,6 +12,7 @@
         "laravel/tinker": "^2.8",
         "mailjet/laravel-mailjet": "^3.0",
         "nextapps/laravel-verification-code": "^2.1",
+        "twilio/sdk": "^8.2",
         "tymon/jwt-auth": "^2.0"
     },
     "require-dev": {

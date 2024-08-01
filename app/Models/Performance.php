@@ -10,7 +10,9 @@ class Performance extends Model
     use HasFactory;
     protected $fillable = [
         "title",
+        "titleKh",
         "description",
+        "descriptionKh",
         "image",
         "ordering",
         "isActive",

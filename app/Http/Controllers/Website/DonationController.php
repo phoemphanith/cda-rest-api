@@ -16,9 +16,14 @@ class DonationController extends Controller
 {
     public function donationList()
     {
-        $donors = User::where("totalDonation", ">", 0)->select("id", "name", "image", "totalDonation")->orderBy("totalDonation", "DESC")->get();
+        $donors = User::where("totalDonation", ">", 0)->select("id", "name", "image", "totalDonation", "loginWith")->orderBy("totalDonation", "DESC")->get();
+        $donations = Donation::where("donorId", null)->get();
+        $donations->each(function($query) use ($donors) { 
+            $donors->push(new User(["id" => 1, "name" => "Anonymous", "image" => null, "totalDonation" => $query->amount, "loginWith" => null]));
+        });
         $donors->each(function($donor) {
             $donor->totalProjects = Donation::where("donorId", $donor->id)->distinct("campaignId")->count();
+            $donor->loginBy = $donor->loginWith;
         });
         return response()->json($donors);
     }
@@ -71,5 +76,16 @@ class DonationController extends Controller
             "message" => "Donation Successfully!",
             "status" => "success"
         ], 200);
+    }
+
+    public function listAllDonations(Request $request)
+    {
+        $donations = Donation::orderBy("created_at", "DESC")->paginate(request("limit", 10));
+        $donations->each(function ($donation) {
+            $donation->donor =  User::select("id", "name", "image")->where("id", $donation->donorId)->first();
+            $donation->dayPass = Carbon::parse($donation->donationDate)->diffForHumans();
+        });
+
+        return response()->json($donations->items());
     }
 }

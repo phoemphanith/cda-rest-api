@@ -49,6 +49,7 @@ class Campaign extends Model
         "isActive",
         "isInNeed",
         "isTrending",
-        "isLatest"
+        "isLatest",
+        "allowEdit"
     ];
 }
