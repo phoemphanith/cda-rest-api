@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use NextApps\VerificationCode\VerificationCode;
 use RuntimeException;
 use Twilio\Rest\Client;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -21,8 +22,8 @@ class AuthController extends Controller
     {
         $this->middleware('auth:api', [
             'except' => [
-                'login', 'register', 'loginWeb', 'registerWeb', 'googleAuth', 'sendEmailVerifyCode', 
-                'getEmailVerifyCode', 'sendPhonNumberVerifyCode', 
+                'login', 'register', 'loginWeb', 'registerWeb', 'googleAuth', 'sendEmailVerifyCode',
+                'getEmailVerifyCode', 'sendPhonNumberVerifyCode',
                 'verifyPhoneCode', 'findUserAccountIsExited', 'changePassword'
             ]
         ]);
@@ -126,6 +127,10 @@ class AuthController extends Controller
                 'password' => bcrypt($request->password),
                 'joinAt' => Carbon::now(),
                 'name' => $request->firstName . " " . $request->lastName,
+                'isSuperAdmin' => false,
+                'isAdmin' => false,
+                'isActive' => true,
+                'memberType' => 'MEMBER'
             ]
         ));
         return response()->json([
@@ -146,30 +151,35 @@ class AuthController extends Controller
             'loginWith' => 'required'
         ]);
 
-        $exitUser = User::where("email", $request->email)->where("loginWith", 3)->first();
+        $exitUser = User::where("email", $request->email)->first();
 
         if (!$exitUser) {
             User::create(array_merge(
                 $validator->validated(),
                 [
-                    'password' => bcrypt("GOOGLE@168"),
                     'joinAt' => Carbon::now(),
                     'name' => $request->firstName . " " . $request->lastName,
-                    'image' => $request->image
+                    'password' => null,
+                    'image' => $request->image,
+                    'isSuperAdmin' => false,
+                    'isAdmin' => false,
+                    'isActive' => true,
+                    'memberType' => 'MEMBER'
                 ]
             ));
         }
 
-        $credential = array(
-            "email" => $request->email,
-            "password" => "GOOGLE@168",
-            "loginWith" => 3
-        );
+        $newUser = User::where("email", $request->email)->first();
+        
+        $token = JWTAuth::fromUser($exitUser ? $exitUser : $newUser);
 
-        $token = auth()->attempt($credential);
-
-
-        return $this->createNewToken($token);
+        return response()->json([
+            'status' => 'success',
+            'token' => $token,
+            'tokenType' => 'bearer',
+            'expiresIn' => auth()->factory()->getTTL() * 60,
+            'data' => $exitUser ? $exitUser : $newUser
+        ]);
     }
 
     /**
@@ -243,25 +253,75 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'phoneNumber' => ['required', 'numeric'],
+            'verifyType' => 'required'
         ]);
-        try {
-            /* Get credentials from .env */
-            $token = getenv("TWILIO_AUTH_TOKEN");
-            $twilio_sid = getenv("TWILIO_SID");
-            $twilio_verify_sid = getenv("TWILIO_VERIFY_SID");
-            $twilio = new Client($twilio_sid, $token);
-            $twilio->verify->v2->services($twilio_verify_sid)
-                ->verifications
-                ->create($data['phoneNumber'], "sms");
-        } catch (RuntimeException $th) {
+
+        if ($data['verifyType'] == "FORGET_PASSWORD") {
+            $user = User::where("phoneNumber", $data["phoneNumber"])->first();
+
+            if($user) {
+                try {
+                    /* Get credentials from .env */
+                    $token = getenv("TWILIO_AUTH_TOKEN");
+                    $twilio_sid = getenv("TWILIO_SID");
+                    $twilio_verify_sid = getenv("TWILIO_VERIFY_SID");
+                    $twilio = new Client($twilio_sid, $token);
+                    $twilio->verify->v2->services($twilio_verify_sid)
+                        ->verifications
+                        ->create($data['phoneNumber'], "sms");
+                } catch (RuntimeException $th) {
+                    return response()->json([
+                        'status' => 'fail',
+                        'message' => 'Send Code is failed',
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => 'Send Code is failed',
+                ]);
+            }
             return response()->json([
-                'status' => 'fail',
-                'message' => 'Send Code is failed',
+                'status' => 'success',
+                'message' => 'Send Code is Successfully',
             ]);
         }
+
+        if ($data['verifyType'] == "REGISTER") {
+            $user = User::where("phoneNumber", $data["phoneNumber"])->first();
+
+            if($user) {
+                return response()->json([
+                    'status' => 'fail',
+                    'message' => 'Phone number already exited',
+                ]);
+            } else {
+                try {
+                    /* Get credentials from .env */
+                    $token = getenv("TWILIO_AUTH_TOKEN");
+                    $twilio_sid = getenv("TWILIO_SID");
+                    $twilio_verify_sid = getenv("TWILIO_VERIFY_SID");
+                    $twilio = new Client($twilio_sid, $token);
+                    $twilio->verify->v2->services($twilio_verify_sid)
+                        ->verifications
+                        ->create($data['phoneNumber'], "sms");
+                } catch (RuntimeException $th) {
+                    return response()->json([
+                        'status' => 'fail',
+                        'message' => 'Send Code is failed',
+                    ]);
+                }
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Send Code is Successfully',
+            ]);
+        }
+        
         return response()->json([
-            'status' => 'success',
-            'message' => 'Send Code is Successfully',
+            'status' => 'fail',
+            'message' => 'Something went wrong',
         ]);
     }
 
@@ -348,7 +408,7 @@ class AuthController extends Controller
         } else {
             return response()->json([
                 'status' => 'fail',
-                'message' => "Phone number / Email is not exited.".substr($username, 1)
+                'message' => "Phone number / Email is not exited." . substr($username, 1)
             ]);
         }
     }

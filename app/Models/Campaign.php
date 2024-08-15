@@ -50,6 +50,7 @@ class Campaign extends Model
         "isInNeed",
         "isTrending",
         "isLatest",
-        "allowEdit"
+        "allowEdit",
+        "qrCode"
     ];
 }

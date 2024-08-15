@@ -14,11 +14,24 @@ use Illuminate\Support\Facades\Log;
 
 class DonationController extends Controller
 {
+    public function topDonation()
+    {
+        $donors = User::where("totalDonation", ">", 0)->select("id", "name", "image", "totalDonation", "loginWith")->orderBy("totalDonation", "DESC")->limit(9)->get();
+        $donations = Donation::where("donorId", null)->get();
+        $donations->each(function($query) use ($donors) {
+            $donors->push(new User(["id" => 1, "name" => "Anonymous", "image" => null, "totalDonation" => $query->amount, "loginWith" => null]));
+        });
+        $donors->each(function($donor) {
+            $donor->totalProjects = Donation::where("donorId", $donor->id)->distinct("campaignId")->count();
+            $donor->loginBy = $donor->loginWith;
+        });
+        return response()->json($donors);
+    }
     public function donationList()
     {
         $donors = User::where("totalDonation", ">", 0)->select("id", "name", "image", "totalDonation", "loginWith")->orderBy("totalDonation", "DESC")->get();
         $donations = Donation::where("donorId", null)->get();
-        $donations->each(function($query) use ($donors) { 
+        $donations->each(function($query) use ($donors) {
             $donors->push(new User(["id" => 1, "name" => "Anonymous", "image" => null, "totalDonation" => $query->amount, "loginWith" => null]));
         });
         $donors->each(function($donor) {

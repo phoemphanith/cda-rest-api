@@ -4,11 +4,17 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\PageBanner;
+use App\Models\Performance;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 
 class WebPageController extends Controller
 {
+    public function howItWork()
+    {
+        $howItWork = Performance::where("isActive", true)->orderBy("ordering", "asc")->get();
+        return response()->json($howItWork);
+    }
     public function privacyPolicy()
     {
         $privacyPolicy = SiteSetting::where("type", "PRIVACY_POLICY")->first();

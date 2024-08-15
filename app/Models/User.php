@@ -41,7 +41,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password',
-        'loginWith' // 1 = Phone | 2 = Email | 3 = Google
+        // 'loginWith' // 1 = Phone | 2 = Email | 3 = Google
     ];
 
     /**

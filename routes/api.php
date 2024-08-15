@@ -50,6 +50,12 @@ Route::group(['middleware' => 'api', 'prefix' => 'users'], function () {
     Route::get("/detail", [API\UserController::class, "show"]);
     Route::delete("/delete/{id}", [API\UserController::class, "destroy"]);
 });
+Route::group(['middleware' => 'api', 'prefix' => 'members'], function () {
+    Route::get("/", [Admin\MemberController::class, "index"]);
+    Route::post("/", [Admin\MemberController::class, "store"]);
+    Route::get("/detail", [Admin\MemberController::class, "show"]);
+    Route::delete("/delete/{id}", [Admin\MemberController::class, "destroy"]);
+});
 
 Route::group(['middleware' => 'api', 'prefix' => 'performances'], function () {
     Route::get("/", [Admin\PerformanceController::class, "index"]);
@@ -100,6 +106,13 @@ Route::group(['middleware' => 'api', 'prefix' => 'technologies'], function () {
     Route::delete("/delete/{id}", [Admin\TechnologyController::class, "destroy"]);
 });
 
+Route::group(['middleware' => 'api', 'prefix' => 'partners'], function () {
+    Route::get("/", [Admin\PartnerController::class, "index"]);
+    Route::post("/", [Admin\PartnerController::class, "store"]);
+    Route::get("/detail", [Admin\PartnerController::class, "show"]);
+    Route::delete("/delete/{id}", [Admin\PartnerController::class, "destroy"]);
+});
+
 Route::group(['middleware' => 'api', 'prefix' => 'banners'], function () {
     Route::get("/", [Admin\BannerController::class, "index"]);
     Route::post("/", [Admin\BannerController::class, "store"]);
@@ -129,10 +142,12 @@ Route::get("/save-image/{dir}", [FileStorageController::class, "previewImage"]);
 
 Route::prefix('/web')->group(function () {
     Route::get("/feed-list", [Website\FeedController::class, "index"]);
+    Route::get("/how-it-work", [Website\WebPageController::class, "howItWork"]);
     Route::group(["prefix" => "donation"], function() {
         Route::post("/", [DonationController::class, "donation"]);
         Route::get("/donor-list", [DonationController::class, "donationList"]);
         Route::get("/list-all-donations", [DonationController::class, "listAllDonations"]);
+        Route::get("/list-top-donations", [DonationController::class, "topDonation"]);
     });
     Route::group(["prefix" => "campaign"], function() {
         Route::get("/dropdown", [Website\CampaignController::class, "dropdown"]);
@@ -140,6 +155,30 @@ Route::prefix('/web')->group(function () {
         Route::get("/project", [Website\CampaignController::class, "projectCampaign"]);
         Route::get("/project/{id}", [Website\CampaignController::class, "campaignDetail"]);
         Route::get("/donor-list/{campaignId}", [Website\CampaignController::class, "getAllDonorByCampaign"]);
+        Route::get("/generate-qr-code/{campaignId}", [Website\CampaignController::class, "generateQRCode"]);
+        Route::get("/view-qr-code", [Website\CampaignController::class, "viewSvgFile"]);
+        Route::group(['middleware' => 'api', 'prefix' => 'user'], function () {
+            Route::post('/share', [Website\CampaignController::class, 'userShareCampaign']);
+            Route::post('/like', [Website\CampaignController::class, 'userLikeCampaign']);
+            Route::get('/user-like', [Website\CampaignController::class, 'userIsLikeCampaign']);
+        });
+    });
+    Route::group(["prefix" => "home"], function () {
+        Route::get("/slider", [Website\HomepageController::class, "slider"]);
+        Route::get("/news-event", [Website\HomepageController::class, "newsEvent"]);
+        Route::get("/partner", [Website\HomepageController::class, "partners"]);
+        Route::get("/", [Website\HomepageController::class, "homepage"]);
+    });
+    Route::group(["prefix" => "news"], function() {
+        Route::get("/", [Website\NewsController::class, "newsEvents"]);
+        Route::get("/list-related", [Website\NewsController::class, "listRelated"]);
+        Route::get("/{id}", [Website\NewsController::class, "detail"]);
+    });
+    Route::group(["prefix" => "about"], function () {
+        Route::get("/", [Website\AboutUsController::class, "aboutPage"]);
+    });
+    Route::group(["prefix" => "contact"], function () {
+        Route::get("/", [Website\ContactController::class, "contactPage"]);
     });
 });
 

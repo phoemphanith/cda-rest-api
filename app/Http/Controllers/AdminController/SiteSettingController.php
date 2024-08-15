@@ -36,8 +36,11 @@ class SiteSettingController extends Controller
             case 'WHO_WE_ARE':
                 $item = $this->_whoWeAre($req);
                 break;
-            case 'OUR_GOAL':
-                $item = $this->_ourGoal($req);
+            case 'HOME_PAGE':
+                $item = $this->_homePage($req);
+                break;
+            case 'ABOUT_PAGE':
+                $item = $this->_aboutPage($req);
                 break;
             case 'SKILLSET':
                 $item = $this->_skillset($req);
@@ -112,15 +115,99 @@ class SiteSettingController extends Controller
             "thumbnail" => $body->thumbnail ?: ""
         ];
     }
-    private function _ourGoal(Request $body)
+
+    public function _aboutPage(Request $body)
     {
         return [
-            "title" => $body->title ?: "",
-            "description" => $body->description ?: "",
+            "introTitle" => $body->introTitle ?: "",
+            "introTitleKh" => $body->introTitleKh ?: "",
+            "introDesc" => $body->introDesc ?: "",
+            "introDescKh" => $body->introDescKh ?: "",
+            "introHighlight" => $body->introHighlight ?: "",
+            "introHighlightKh" => $body->introHighlightKh ?: "",
+            "successfulCampaign" => $body->successfulCampaign ?: 0,
+            "amazingDonors" => $body->amazingDonors ?: 0,
+            "donorTrusted" => $body->donorTrusted ?: 0,
+            "thumbnailTwo" => $body->thumbnailTwo ?: "",
+            "cardTitle1" => $body->cardTitle1 ?: "",
+            "cardTitleKh1" => $body->cardTitleKh1 ?: "",
+            "cardDesc1" => $body->cardDesc1 ?: "",
+            "cardDescKh1" => $body->cardDescKh1 ?: "",
+            "cardIcon1" => $body->cardIcon1 ?: "",
+            "cardTitle2" => $body->cardTitle2 ?: "",
+            "cardTitleKh2" => $body->cardTitleKh2 ?: "",
+            "cardDesc2" => $body->cardDesc2 ?: "",
+            "cardDescKh2" => $body->cardDescKh2 ?: "",
+            "cardIcon2" => $body->cardIcon2 ?: "",
+            "cardTitle3" => $body->cardTitle3 ?: "",
+            "cardTitleKh3" => $body->cardTitleKh3 ?: "",
+            "cardDesc3" => $body->cardDesc3 ?: "",
+            "cardDescKh3" => $body->cardDescKh3 ?: "",
+            "cardIcon3" => $body->cardIcon3 ?: "",
+            "bannerDesc" => $body->bannerDesc ?: "",
+            "bannerDescKh" => $body->bannerDescKh ?: "",
+            "bannerLabel" => $body->bannerLabel ?: "",
+            "bannerLabelKh" => $body->bannerLabelKh ?: "",
+            "bannerLinkTo" => $body->bannerLinkTo ?: "",
             "thumbnail" => $body->thumbnail ?: "",
-            "vision" => $body->vision ?: "",
-            "mission" => $body->mission ?: "",
-            "thumbnailTwo" => $body->thumbnailTwo ?: ""
+            "totalDonation" => $body->totalDonation ?: 0,
+            "projectClosed" => $body->projectClosed ?: 0,
+            "happyPeople" => $body->happyPeople ?: 0,
+            "ourVolunteer" => $body->ourVolunteer ?: 0,
+            "professionalVolunteer" => $body->professionalVolunteer ?: "",
+            "professionalVolunteerKh" => $body->professionalVolunteerKh ?: "",
+            "ourDonors" => $body->ourDonors ?: "",
+            "ourDonorsKh" => $body->ourDonorsKh ?: "",
+            "thumbnailFive" => $body->thumbnailFive ?: "",
+        ];
+    }
+
+    private function _homePage(Request $body)
+    {
+        return [
+            "latestProject" => $body->latestProject ?: "",
+            "latestProjectKh" => $body->latestProjectKh ?: "",
+            "bannerDesc" => $body->bannerDesc ?: "",
+            "bannerDescKh" => $body->bannerDescKh ?: "",
+            "bannerLabel" => $body->bannerLabel ?: "",
+            "bannerLabelKh" => $body->bannerLabelKh ?: "",
+            "bannerLinkTo" => $body->bannerLinkTo ?: "",
+            "thumbnail" => $body->thumbnail ?: "",
+            "cardTitle1" => $body->cardTitle1 ?: "",
+            "cardTitleKh1" => $body->cardTitleKh1 ?: "",
+            "cardDesc1" => $body->cardDesc1 ?: "",
+            "cardDescKh1" => $body->cardDescKh1 ?: "",
+            "cardLabel1" => $body->cardLabel1 ?: "",
+            "cardLabelKh1" => $body->cardLabelKh1 ?: "",
+            "cardIcon1" => $body->cardIcon1 ?: "",
+            "cardLinkTo1" => $body->cardLinkTo1 ?: "",
+            "cardIsShow1" => $body->cardIsShow1 ?: "",
+            "thumbnailTwo" => $body->thumbnailTwo ?: "",
+            "cardTitle2" => $body->cardTitle2 ?: "",
+            "cardTitleKh2" => $body->cardTitleKh2 ?: "",
+            "cardDesc2" => $body->cardDesc2 ?: "",
+            "cardDescKh2" => $body->cardDescKh2 ?: "",
+            "cardLabel2" => $body->cardLabel2 ?: "",
+            "cardLabelKh2" => $body->cardLabelKh2 ?: "",
+            "cardIcon2" => $body->cardIcon2 ?: "",
+            "cardLinkTo2" => $body->cardLinkTo2 ?: "",
+            "cardIsShow2" => $body->cardIsShow2 ?: "",
+            "thumbnailThree" => $body->thumbnailThree ?: "",
+            "cardTitle3" => $body->cardTitle3 ?: "",
+            "cardTitleKh3" => $body->cardTitleKh3 ?: "",
+            "cardDesc3" => $body->cardDesc3 ?: "",
+            "cardDescKh3" => $body->cardDescKh3 ?: "",
+            "cardLabel3" => $body->cardLabel3 ?: "",
+            "cardLabelKh3" => $body->cardLabelKh3 ?: "",
+            "cardIcon3" => $body->cardIcon3 ?: "",
+            "cardLinkTo3" => $body->cardLinkTo3 ?: "",
+            "cardIsShow3" => $body->cardIsShow3 ?: "",
+            "thumbnailFour" => $body->thumbnailFour ?: "",
+            "ourDonors" => $body->ourDonors ?: "",
+            "ourDonorsKh" => $body->ourDonorsKh ?: "",
+            "thumbnailFive" => $body->thumbnailFive ?: "",
+            "getDailyUpdate" => $body->getDailyUpdate ?: "",
+            "getDailyUpdateKh" => $body->getDailyUpdateKh ?: "",
         ];
     }
 
@@ -169,18 +256,22 @@ class SiteSettingController extends Controller
     private function _contact(Request $body)
     {
         return [
+            'pageTitle' => $body->pageTitle ?: "",
+            'pageTitleKh' => $body->pageTitleKh ?: "",
+            'pageDescription' => $body->pageDescription ?: "",
+            'pageDescriptionKh' => $body->pageDescriptionKh ?: "",
+            'thumbnail' => $body->thumbnail ?: "",
             'email1' => $body->email1 ?: "",
             'email2' => $body->email2 ?: "",
             'phoneNumber1' => $body->phoneNumber1 ?: "",
             'phoneNumber2' => $body->phoneNumber2 ?: "",
             'address' => $body->address ?: "",
+            'addressKh' => $body->addressKh ?: "",
             'embedMap' => $body->embedMap ?: "",
             'facebookLink' => $body->facebookLink ?: "",
             'instagramLink' => $body->instagramLink ?: "",
             'telegramLink' => $body->telegramLink ?: "",
-            'linkedinLink' => $body->linkedinLink ?: "",
-            'appId' => $body->appId ?: "",
-            'pageId' => $body->pageId ?: "",
+            'linkedinLink' => $body->linkedinLink ?: ""
         ];
     }
     private function _termService(Request $body)
