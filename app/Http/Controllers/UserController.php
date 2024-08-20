@@ -34,10 +34,10 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $dataForm = [
+            'isAdmin' => true,
             'name' => request('name', null),
             'email' => request('email', null),
             'phoneNumber' => request('phoneNumber', null),
-            'isSuperAdmin' => request('isSuperAdmin', null),
             'image' => request('image', null),
             'isActive' => request("isActive", true)
         ];

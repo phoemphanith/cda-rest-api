@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Log;
 
 class CampaignController extends Controller
 {
-    public function getDropdown()
+    public function getDropdown(Request $request)
     {
+        $lang = $request->header("Accept-Language");
         $categories = CampaignCategory::where("isActive", true)->get();
-        $categories->each(function($query){
+        $categories->each(function($query) use ($lang) {
             $query->countProject = Campaign::where("status", "COMPLETE")->where("campaignCategoryId", $query->id)->count();
+            $query->name = $lang == "KHM" ? ($query->nameKh ? $query->nameKh : $query->name) : $query->name;
         });
         return response()->json([
             'message' => 'Get Dropdown',

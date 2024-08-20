@@ -153,7 +153,9 @@ Route::prefix('/web')->group(function () {
         Route::get("/dropdown", [Website\CampaignController::class, "dropdown"]);
         Route::get("/home", [Website\CampaignController::class, "homeCampaign"]);
         Route::get("/project", [Website\CampaignController::class, "projectCampaign"]);
+        Route::get("/project-id-paths", [Website\CampaignController::class, "projectCampaignIdPaths"]);
         Route::get("/project/{id}", [Website\CampaignController::class, "campaignDetail"]);
+        Route::get("/project-meta/{id}", [Website\CampaignController::class, "campaignDetailMeta"]);
         Route::get("/donor-list/{campaignId}", [Website\CampaignController::class, "getAllDonorByCampaign"]);
         Route::get("/generate-qr-code/{campaignId}", [Website\CampaignController::class, "generateQRCode"]);
         Route::get("/view-qr-code", [Website\CampaignController::class, "viewSvgFile"]);
