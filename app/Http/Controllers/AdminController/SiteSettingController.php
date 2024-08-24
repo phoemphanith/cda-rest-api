@@ -277,15 +277,15 @@ class SiteSettingController extends Controller
     private function _termService(Request $body)
     {
         return [
-            "thumbnail" => $body->thumbnail ?: "",
-            "description" => $body->description ?: ""
+            "description" => $body->description ?: "",
+            "descriptionKh" => $body->descriptionKh ?: ""
         ];
     }
     private function _privacyPolicy(Request $body)
     {
         return [
-            "thumbnail" => $body->thumbnail ?: "",
-            "description" => $body->description ?: ""
+            "description" => $body->description ?: "",
+            "descriptionKh" => $body->descriptionKh ?: ""
         ];
     }
 }

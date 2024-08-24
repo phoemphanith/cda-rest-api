@@ -182,12 +182,12 @@ Route::prefix('/web')->group(function () {
     Route::group(["prefix" => "contact"], function () {
         Route::get("/", [Website\ContactController::class, "contactPage"]);
     });
+    Route::get("/term-condition", [Website\TermConditionController::class, "termConditionPage"]);
+    Route::get("/privacy-policy", [Website\PrivacyPolicyController::class, "privacyPolicyPage"]);
+    Route::get("/page-banner", [Website\WebPageController::class, "pageBanner"]);
 });
 
-Route::get("/contact-us-page", [WebPageController::class, "contactUs"]);
 Route::post("/sending-email", [WebPageController::class, "sendingEmail"]);
-Route::get("/privacy-policy-page", [WebPageController::class, "privacyPolicy"]);
-Route::get("/term-service-page", [WebPageController::class, "termService"]);
 
 // Website Private
 // User Dashboard

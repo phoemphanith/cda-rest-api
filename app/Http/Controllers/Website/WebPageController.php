@@ -15,43 +15,11 @@ class WebPageController extends Controller
         $howItWork = Performance::where("isActive", true)->orderBy("ordering", "asc")->get();
         return response()->json($howItWork);
     }
-    public function privacyPolicy()
-    {
-        $privacyPolicy = SiteSetting::where("type", "PRIVACY_POLICY")->first();
-        return response()->json([
-            "status" => "success",
-            "message" => "Load data success",
-            "privacyPolicy" => $privacyPolicy ? json_decode($privacyPolicy->content) : null,
-        ], 200);
-    }
 
-    public function termService()
+    public function pageBanner(Request $request)
     {
-        $termService = SiteSetting::where("type", "TERM_SERVICE")->first();
-        return response()->json([
-            "status" => "success",
-            "message" => "Load data success",
-            "termService" => $termService ? json_decode($termService->content) : null,
-        ], 200);
-    }
-
-    public function contactUs()
-    {
-        $contact = SiteSetting::where("type", "CONTACT")->first();
-        $aboutCompany = SiteSetting::where("type", "ABOUT_COMPANY")->first();
-        $pageBanners = PageBanner::where("isActive", true)->get();
-        $pageBanner = null;
-        foreach ($pageBanners as $page) {
-            $pageBanner[$page->pageTitle] = $page->image;
-        }
-
-        return response()->json([
-            "status" => "success",
-            "message" => "Load data success",
-            "contact" => $contact ? json_decode($contact->content) : null,
-            "aboutCompany" => $aboutCompany ? json_decode($aboutCompany->content) : null,
-            "pageBanner" => $pageBanner
-        ], 200);
+        $pageBanner = PageBanner::where("pageTitle", $request->type)->first();
+        return response()->json($pageBanner ? $pageBanner->image : null);
     }
 
     public function sendingEmail(Request $request)
