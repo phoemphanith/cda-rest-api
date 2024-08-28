@@ -19,7 +19,7 @@
                                 <table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Roboto', sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                                     <tr style="font-family: 'Roboto', sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                                         <td class="content-block" style="font-family: 'Roboto', sans-serif; box-sizing: border-box; font-size: 24px; vertical-align: top; margin: 0; padding: 0 0 10px; text-align: center;" valign="top">
-                                            <h4 style="font-family: 'Roboto', sans-serif; margin-bottom: 10px; font-weight: 600;">New Contact</h5>
+                                            <h5 style="font-family: 'Roboto', sans-serif; margin-bottom: 10px; font-weight: 600;">New Contact</h5>
                                         </td>
                                     </tr>
                                     <tr style="font-family: 'Roboto', sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">

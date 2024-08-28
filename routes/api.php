@@ -157,16 +157,19 @@ Route::prefix('/web')->group(function () {
         Route::get("/project/{id}", [Website\CampaignController::class, "campaignDetail"]);
         Route::get("/project-meta/{id}", [Website\CampaignController::class, "campaignDetailMeta"]);
         Route::get("/donor-list/{campaignId}", [Website\CampaignController::class, "getAllDonorByCampaign"]);
+        Route::get("/comment-list/{campaignId}", [Website\CampaignController::class, "getCampaignComment"]);
         Route::get("/generate-qr-code/{campaignId}", [Website\CampaignController::class, "generateQRCode"]);
         Route::get("/view-qr-code", [Website\CampaignController::class, "viewSvgFile"]);
         Route::group(['middleware' => 'api', 'prefix' => 'user'], function () {
             Route::post('/share', [Website\CampaignController::class, 'userShareCampaign']);
+            Route::post('/comment', [Website\CampaignController::class, 'userComment']);
             Route::post('/like', [Website\CampaignController::class, 'userLikeCampaign']);
             Route::get('/user-like', [Website\CampaignController::class, 'userIsLikeCampaign']);
         });
     });
     Route::group(["prefix" => "home"], function () {
         Route::get("/slider", [Website\HomepageController::class, "slider"]);
+        Route::get("/categories", [Website\HomepageController::class, "getCategories"]);
         Route::get("/news-event", [Website\HomepageController::class, "newsEvent"]);
         Route::get("/partner", [Website\HomepageController::class, "partners"]);
         Route::get("/", [Website\HomepageController::class, "homepage"]);

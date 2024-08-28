@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Website;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\CampaignCategory;
+use App\Models\Comment;
 use App\Models\Donation;
 use App\Models\User;
 use App\Models\UserLike;
 use App\Models\UserShare;
 use Carbon\Carbon;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class CampaignController extends Controller
@@ -22,14 +26,14 @@ class CampaignController extends Controller
     {
         $lang = $request->header('Accept-Language');
         $campaign = Campaign::where("id", $id)->first();
-        $campaign->campaignTile = $lang == "KHM" ? ($campaign->campaignTileKm ? $campaign->campaignTileKm : $campaign->campaignTile) : $campaign->campaignTile;
-        $campaign->fullStory = $lang == "KHM" ? ($campaign->fullStoryKm ? $campaign->fullStoryKm : $campaign->fullStory) : $campaign->fullStory;
+        $campaign->campaignTile = $lang == "KHM" ? ($campaign->campaignTileKm ?: $campaign->campaignTile) : $campaign->campaignTile;
+        $campaign->fullStory = $lang == "KHM" ? ($campaign->fullStoryKm ?: $campaign->fullStory) : $campaign->fullStory;
 
         $campaign->campaignGallery = json_decode($campaign->campaignGallery);
 
         $category = CampaignCategory::select("id", "name", "nameKh")->where("id", $campaign->campaignCategoryId)->first();
         if ($category) {
-            $category->name = $lang == "KHM" ? ($category->nameKh ? $category->nameKh : $category->name) : $category->name;
+            $category->name = $lang == "KHM" ? ($category->nameKh ?: $category->name) : $category->name;
         }
         $campaign->campaignCategory = $category;
 
@@ -51,7 +55,9 @@ class CampaignController extends Controller
 
     public function campaignDetailMeta($id)
     {
-        $campaign = Campaign::select("campaignTile", "campaignGallery", "created_at", "id", "fullStory")->where("id", $id)->first();
+        $campaign = Cache::remember('campaigns', 120, function () use ($id) {
+            return Campaign::select("campaignTile", "campaignGallery", "created_at", "involvement", "id", "qrCode")->where("id", $id)->first();
+        });
         $campaign->campaignGallery = json_decode($campaign->campaignGallery);
         return response()->json($campaign);
     }
@@ -72,20 +78,20 @@ class CampaignController extends Controller
         $lang = $request->header("Accept-Language");
         $inNeedCampaign = Campaign::select("id", "campaignTile", "campaignTileKm", "involvement", "involvementKm", "goal", "totalRaised", "campaignGallery")->where("isInNeed", true)->where("status", "COMPLETE")->orderBy("id", "ASC")->first();
         $inNeedCampaign->campaignGallery = json_decode($inNeedCampaign->campaignGallery);
-        $inNeedCampaign->campaignTile = $inNeedCampaign->campaignTile = $lang == "KHM" ? ($inNeedCampaign->campaignTileKm ? $inNeedCampaign->campaignTileKm : $inNeedCampaign->campaignTile) : $inNeedCampaign->campaignTile;
-        $inNeedCampaign->involvement = $inNeedCampaign->involvement = $lang == "KHM" ? ($inNeedCampaign->involvementKm ? $inNeedCampaign->involvementKm : $inNeedCampaign->involvement) : $inNeedCampaign->involvement;
+        $inNeedCampaign->campaignTile = $lang == "KHM" ? ($inNeedCampaign->campaignTileKm ?: $inNeedCampaign->campaignTile) : $inNeedCampaign->campaignTile;
+        $inNeedCampaign->involvement = $lang == "KHM" ? ($inNeedCampaign->involvementKm ?: $inNeedCampaign->involvement) : $inNeedCampaign->involvement;
         $inNeedCampaign->makeHidden(["campaignTileKm", "involvementKm"]);
 
         $isLatest = Campaign::where("isLatest", true)->where("status", "COMPLETE")->orderBy("created_at", "DESC")->limit(9)->get();
         $isLatest->each(function ($query) use ($lang) {
-            $query->campaignTile = $query->campaignTile = $lang == "KHM" ? ($query->campaignTileKm ? $query->campaignTileKm : $query->campaignTile) : $query->campaignTile;
-            $query->involvement = $query->involvement = $lang == "KHM" ? ($query->involvementKm ? $query->involvementKm : $query->involvement) : $query->involvement;
+            $query->campaignTile = $lang == "KHM" ? ($query->campaignTileKm ?: $query->campaignTile) : $query->campaignTile;
+            $query->involvement = $lang == "KHM" ? ($query->involvementKm ?: $query->involvement) : $query->involvement;
             $query->makeHidden(["campaignTileKm", "involvementKm"]);
-            
+
             $query->campaignGallery = json_decode($query->campaignGallery);
             $category = CampaignCategory::select("id", "name", "nameKh")->where("id", $query->campaignCategoryId)->first();
             if ($category) {
-                $category->name = $lang == "KHM" ? ($category->nameKh ? $category->nameKh : $category->name) : $category->name;
+                $category->name = $lang == "KHM" ? ($category->nameKh ?: $category->name) : $category->name;
             }
             $query->campaignCategory = $category;
             $query->createdAt = Carbon::parse($query->created_at)->format('F jS, Y');
@@ -111,16 +117,16 @@ class CampaignController extends Controller
         $category = $request->category;
         $orderBy = request("sortBy", "");
 
-        $campaignList = Campaign::where("status", "COMPLETE")->when($location, function ($query) use ($location) {
+        $campaignList = Campaign::select("id", "campaignTile", "campaignTileKm", "involvement", "involvementKm", "campaignGallery", "goal", "totalRaised")->where("status", "COMPLETE")->when($location, function ($query) use ($location) {
             $query->where("city", "like", "%" . $location . "%");
         })->when($organization, function ($query) use ($organization) {
             $query->where("creatorId", $organization);
         })->when($category, function ($query) use ($category) {
             $query->whereIn("campaignCategoryId", explode(",", $category));
-        })->orderBy("created_at", "DESC")->get();
+        })->inRandomOrder()->get();
 
         if ($orderBy == "ending") {
-            $campaignList = Campaign::where("status", "COMPLETE")->when($location, function ($query) use ($location) {
+            $campaignList = Campaign::select("id", "campaignTile", "campaignTileKm", "involvement", "involvementKm", "campaignGallery", "goal", "totalRaised")->where("status", "COMPLETE")->when($location, function ($query) use ($location) {
                 $query->where("city", "like", "%" . $location . "%");
             })->when($organization, function ($query) use ($organization) {
                 $query->where("creatorId", $organization);
@@ -130,7 +136,7 @@ class CampaignController extends Controller
         }
 
         if ($orderBy == "trending") {
-            $campaignList = Campaign::where("status", "COMPLETE")->when($location, function ($query) use ($location) {
+            $campaignList = Campaign::select("id", "campaignTile", "campaignTileKm", "involvement", "involvementKm", "campaignGallery", "goal", "totalRaised")->where("status", "COMPLETE")->when($location, function ($query) use ($location) {
                 $query->where("city", "like", "%" . $location . "%");
             })->when($organization, function ($query) use ($organization) {
                 $query->where("creatorId", $organization);
@@ -140,14 +146,14 @@ class CampaignController extends Controller
         }
 
         $campaignList->each(function ($query) use ($lang) {
-            $query->campaignTile = $query->campaignTile = $lang == "KHM" ? ($query->campaignTileKm ? $query->campaignTileKm : $query->campaignTile) : $query->campaignTile;
-            $query->involvement = $query->involvement = $lang == "KHM" ? ($query->involvementKm ? $query->involvementKm : $query->involvement) : $query->involvement;
+            $query->campaignTile = $lang == "KHM" ? ($query->campaignTileKm ?: $query->campaignTile) : $query->campaignTile;
+            $query->involvement = $lang == "KHM" ? ($query->involvementKm ?: $query->involvement) : $query->involvement;
             $query->makeHidden(["campaignTileKm", "involvementKm"]);
 
             $query->campaignGallery = json_decode($query->campaignGallery);
             $category = CampaignCategory::select("id", "name", "nameKh")->where("id", $query->campaignCategoryId)->first();
             if ($category) {
-                $category->name = $lang == "KHM" ? ($category->nameKh ? $category->nameKh : $category->name) : $category->name;
+                $category->name = $lang == "KHM" ? ($category->nameKh ?: $category->name) : $category->name;
             }
             $query->campaignCategory = $category;
 
@@ -167,8 +173,9 @@ class CampaignController extends Controller
 
     public function projectCampaignIdPaths(Request $request)
     {
-       
-        $campaignList = Campaign::where("status", "COMPLETE")->select("id")->get();
+        $campaignList = Cache::remember('campaigns.id', 120, function () {
+            return Campaign::where("status", "COMPLETE")->select("id")->get();
+        });
 
         return response()->json([
             "campaignList" => $campaignList
@@ -282,5 +289,33 @@ class CampaignController extends Controller
             "campaignId" => $request->campaignId,
             "comment" => $request->comment
         ];
+
+        try {
+            Comment::create($item);
+        } catch (Exception $err) {
+            Log::info("[Save User Comment]: " . $err);
+            return response()->json([
+                "message" => "Comment Successfully!",
+                "status" => "fail"
+            ], 200);
+        }
+
+        return response()->json([
+            "message" => "Comment Successfully!",
+            "status" => "success"
+        ], 200);
+    }
+
+    public function getCampaignComment($campaignId, Request $request)
+    {
+        $comments = Comment::select("id", "userId", "comment", "created_at")->where("campaignId", $campaignId)->orderBy("created_at", "DESC")->paginate(request("limit", 10));
+        $comments->each(function ($comment) {
+            $user = User::select("id", "name", "image")->where("id", $comment->userId)->first();
+            $comment->sender = $user->name;
+            $comment->image = $user->image;
+            $comment->message = $comment->comment;
+            $comment->time = Carbon::parse($comment->created_at)->diffForHumans();
+        });
+        return response()->json($comments->items());
     }
 }

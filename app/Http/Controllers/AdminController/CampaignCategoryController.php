@@ -7,6 +7,7 @@ use App\Models\CampaignCategory;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class CampaignCategoryController extends Controller
 {
@@ -15,8 +16,7 @@ class CampaignCategoryController extends Controller
      */
     public function index()
     {
-
-        $data = CampaignCategory::select("id", "name", "nameKh", "image", "isActive", "ordering")->orderBy('id', 'desc')->get();
+        $data = CampaignCategory::select("id", "name", "nameKh", "image", "isActive", "isDisplayHomePage", "ordering")->orderBy('id', 'desc')->get();
 
         return response()->json([
             'message' => 'Get list success.',
@@ -33,9 +33,14 @@ class CampaignCategoryController extends Controller
         $dataForm = [
             "name" => request("name", ""),
             "nameKh" => request("nameKh", ""),
+            "desc" => request("desc", ""),
+            "descKh" => request("descKh", ""),
             "image" => request("image", ""),
+            "thumbnail" => request("thumbnail", ""),
+            "color" => request("color", ""),
             "ordering" => request("ordering", 0),
-            'isActive' => request("isActive", true)
+            'isActive' => request("isActive", true),
+            'isDisplayHomePage' => request("isDisplayHomePage", true)
         ];
 
         $result = $this->_onSave($request->id, $dataForm);

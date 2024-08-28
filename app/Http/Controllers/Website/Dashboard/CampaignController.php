@@ -8,6 +8,7 @@ use App\Models\CampaignCategory;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CampaignController extends Controller
@@ -15,10 +16,12 @@ class CampaignController extends Controller
     public function getDropdown(Request $request)
     {
         $lang = $request->header("Accept-Language");
-        $categories = CampaignCategory::where("isActive", true)->get();
+        $categories = Cache::remember('campaign_categories', 120, function () {
+            return CampaignCategory::select("id", "name", "nameKh", "image")->orderBy("ordering", "ASC")->where("isActive", true)->get();
+        });
         $categories->each(function($query) use ($lang) {
             $query->countProject = Campaign::where("status", "COMPLETE")->where("campaignCategoryId", $query->id)->count();
-            $query->name = $lang == "KHM" ? ($query->nameKh ? $query->nameKh : $query->name) : $query->name;
+            $query->name = $lang == "KHM" ? ($query->nameKh ?: $query->name) : $query->name;
         });
         return response()->json([
             'message' => 'Get Dropdown',

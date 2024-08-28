@@ -11,7 +11,12 @@ class CampaignCategory extends Model
     protected $fillable = [
         "name",
         "nameKh",
+        "desc",
+        "descKh",
         "image",
+        "thumbnail",
+        "color",
+        "isDisplayHomePage",
         "ordering",
         "isActive",
     ];

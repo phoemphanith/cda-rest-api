@@ -65,8 +65,7 @@ class AuthController extends Controller
 
         $credential = array(
             "email" => $request->userLogin,
-            "password" => $request->userAuth,
-            "loginWith" => 2
+            "password" => $request->userAuth
         );
 
 
@@ -170,7 +169,7 @@ class AuthController extends Controller
         }
 
         $newUser = User::where("email", $request->email)->first();
-        
+
         $token = JWTAuth::fromUser($exitUser ? $exitUser : $newUser);
 
         return response()->json([
@@ -312,13 +311,13 @@ class AuthController extends Controller
                     ]);
                 }
             }
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Send Code is Successfully',
             ]);
         }
-        
+
         return response()->json([
             'status' => 'fail',
             'message' => 'Something went wrong',

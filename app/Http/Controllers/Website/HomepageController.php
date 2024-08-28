@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Models\Campaign;
+use App\Models\CampaignCategory;
 use App\Models\News;
 use App\Models\Partner;
 use App\Models\SiteSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class HomepageController extends Controller
 {
@@ -26,6 +29,21 @@ class HomepageController extends Controller
         $sliders = $sliders->makeHidden(['titleKh', 'subtitleKh', 'descriptionKh', 'linkLabelKh']);
 
         return response()->json($sliders);
+    }
+
+    public function getCategories(Request $request)
+    {
+        $lang = $request->header("Accept-Language");
+        $categories = Cache::remember('campaign_categories', 120, function () {
+            return CampaignCategory::select("id", "name", "nameKh", "desc", "descKh", "image", "thumbnail")->orderBy("ordering", "ASC")->where("isDisplayHomePage", true)->where("isActive", true)->get();
+        });
+        $categories->each(function($query) use ($lang) {
+            $query->countProject = Campaign::where("status", "COMPLETE")->where("campaignCategoryId", $query->id)->count();
+            $query->name = $lang == "KHM" ? ($query->nameKh ?: $query->name) : $query->name;
+            $query->desc = $lang == "KHM" ? ($query->descKh ?: $query->desc) : $query->desc;
+        });
+        $categories->makeHidden(["nameKh", "descKh"]);
+        return response()->json($categories);
     }
 
     public function homepage(Request $request)

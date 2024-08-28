@@ -15,7 +15,7 @@ class FeedController extends Controller
 {
     public function index(Request $request)
     {
-        $feeList = Feed::orderBy("created_at", "DESC")->paginate(request("limit", 10));
+        $feeList = Feed::orderBy("id", "DESC")->paginate(request("limit", 10));
         $feeList->each(function($feed) {
             $campaign = Campaign::where("id", $feed->campaignId)->first();
             $campaign->startAt = Carbon::parse($campaign->startDate)->format('jS F,  Y');
