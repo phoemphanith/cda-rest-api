@@ -78,6 +78,13 @@ Route::group(['middleware' => 'api', 'prefix' => 'campaign-categories'], functio
     Route::delete("/delete/{id}", [Admin\CampaignCategoryController::class, "destroy"]);
 });
 
+Route::group(['middleware' => 'api', 'prefix' => 'teams'], function () {
+    Route::get("/", [Admin\TeamController::class, "index"]);
+    Route::post("/", [Admin\TeamController::class, "store"]);
+    Route::get("/detail", [Admin\TeamController::class, "show"]);
+    Route::delete("/delete/{id}", [Admin\TeamController::class, "destroy"]);
+});
+
 Route::group(['middleware' => 'api', 'prefix' => 'projects'], function () {
     Route::get("/", [Admin\ProjectController::class, "index"]);
     Route::post("/", [Admin\ProjectController::class, "store"]);
@@ -139,7 +146,6 @@ Route::get("/save-image/{dir}", [FileStorageController::class, "previewImage"]);
 
 
 // Website Public
-
 Route::prefix('/web')->group(function () {
     Route::get("/feed-list", [Website\FeedController::class, "index"]);
     Route::get("/how-it-work", [Website\WebPageController::class, "howItWork"]);
@@ -181,6 +187,7 @@ Route::prefix('/web')->group(function () {
     });
     Route::group(["prefix" => "about"], function () {
         Route::get("/", [Website\AboutUsController::class, "aboutPage"]);
+        Route::get("/teams", [Website\AboutUsController::class, "teamList"]);
     });
     Route::group(["prefix" => "contact"], function () {
         Route::get("/", [Website\ContactController::class, "contactPage"]);

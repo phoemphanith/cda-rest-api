@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Models\Team;
 use Illuminate\Http\Request;
 
 class AboutUsController extends Controller
@@ -43,5 +44,16 @@ class AboutUsController extends Controller
             "ourDonors" => $lang == "KHM" ? ($content->ourDonorsKh ? $content->ourDonorsKh : $content->ourDonors ) : $content->ourDonors,
             "thumbnailFive" => $content->thumbnailFive ?: "",
         ]);
+    }
+
+    public function teamList(Request $request)
+    {
+        $lang = $request->header("Accept-Language");
+        $team = Team::where("isActive", true)->orderBy("ordering", "ASC")->get();
+        $team->each(function($query) use ($lang) {
+            $query->name = $lang == "KHM" ? ($query->nameKh ? $query->nameKh : $query->name ) : $query->name;
+            $query->desc = $lang == "KHM" ? ($query->descKh ? $query->descKh : $query->desc ) : $query->desc;
+        });
+        return response()->json($team);
     }
 }
