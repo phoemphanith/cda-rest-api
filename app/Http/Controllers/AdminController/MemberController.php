@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\AdminController;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campaign;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -88,6 +89,10 @@ class MemberController extends Controller
     public function show(Request $request)
     {
         $model = User::findOrFail($request->id);
+        $campaignList = Campaign::where("creatorId", $request->id)->get();
+        $model["campaignCount"] = $campaignList->count();
+        $model["totalRaised"] = $campaignList->sum("totalRaised");
+        $model["totalDonors"] = $campaignList->sum("totalDonation");
         return response()->json([
             'message' => 'Get user detail success.',
             'status' => 'success',

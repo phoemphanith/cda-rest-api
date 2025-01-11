@@ -228,6 +228,13 @@ class AuthController extends Controller
             'email' => request("email", $user->email),
             'phoneNumber' => request('phoneNumber', $user->phoneNumber),
             'image' => request('image', $user->image),
+            'idType' => request('idType', ""),
+            'idNumber' => request('idNumber', ""),
+            'idCardBack' => request('idCardBack', ""),
+            'idCardFront' => request('idCardFront', ""),
+            'passport' => request('passport', ""),
+            'accountName' => request('accountName', ""),
+            'accountNumber' => request('accountNumber', "")
         ]);
         return response()->json([
             "message" => 'success',

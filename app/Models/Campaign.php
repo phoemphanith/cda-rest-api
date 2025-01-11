@@ -51,6 +51,8 @@ class Campaign extends Model
         "isTrending",
         "isLatest",
         "allowEdit",
-        "qrCode"
+        "qrCode",
+        "balance",
+        "totalWithdraw"
     ];
 }

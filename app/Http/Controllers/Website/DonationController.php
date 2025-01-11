@@ -62,6 +62,7 @@ class DonationController extends Controller
             Campaign::where("id", $request->campaignId)->update([
                 "totalTip" => $campaign->totalTip + $item["tip"],
                 "totalRaised" => $campaign->totalRaised + $item["amount"],
+                "balance" => $campaign->balance + $item["amount"],
                 "totalDonation" => $campaign->totalDonation + 1
             ]);
             $user = User::where("id", $item["donorId"])->first();

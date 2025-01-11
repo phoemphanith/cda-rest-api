@@ -49,6 +49,7 @@ class CampaignController extends Controller
             "status" => request("status", "PENDING"),
             "ordering" => request("ordering", 0)
         ];
+        $campaign = Campaign::where("id", $request->id)->first();
 
         $result = $this->_onSave($request->id, $dataForm);
 
@@ -60,7 +61,6 @@ class CampaignController extends Controller
         }
 
         if($dataForm["status"] == "COMPLETE") {
-            $campaign = Campaign::where("id", $request->id)->first();
             Feed::create([
                 "creatorId" => $campaign->creatorId,
                 "feedType" => "APPROVE",
@@ -68,12 +68,60 @@ class CampaignController extends Controller
                 "donationId" => null,
                 "publishedAt" => Carbon::now()
             ]);
+
+        }
+
+        if( $dataForm["status"] != $campaign->status) {
+            $campaignCategory = CampaignCategory::select("name")->where("id", $campaign->campaignCategoryId)->first();
+            $creator = User::where("id", $campaign->creatorId)->first();
+            $this->sendMessage(
+                $campaign->campaignTile,
+                $dataForm["status"],
+                $campaignCategory->name,
+                $campaign->goal,
+                $creator->name,
+                $creator->phoneNumber ?: $creator->email,
+                json_decode($campaign->campaignGallery)[0]
+            );
         }
 
         return response()->json([
             'message' => 'Save record is successfully.',
             'status' => 'success'
         ], 200);
+    }
+
+    private function sendMessage($title, $status, $category, $goal, $userName, $phoneNumber, $image)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.telegram.org/bot7345727717:AAESLDh_Fu4KmfXVGkcHTXOJXqEFF8kdSPQ/sendphoto',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_POSTFIELDS => array('chat_id' => '-4558906871','photo' => "https://api.cdafund.org/uploads$image",'caption' => "<b>New Campaign</b>
+<b>Status:</b> <u>$status</u>
+<b><u>Campaign Information:</u></b>
+- Title:
+  <code>$title</code>
+- Category:
+  <code>$category</code>
+- Goal:
+  <code>$goal USD</code>
+<b><u>Create By:</u></b>
+  <code>$userName</code>
+  <code>$phoneNumber</code>",'parse_mode' => 'HTML'),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        Log::info($response);
     }
 
     /**

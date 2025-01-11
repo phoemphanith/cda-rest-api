@@ -43,7 +43,9 @@ Route::group([
     Route::post("/check-account", [API\AuthController::class, "findUserAccountIsExited"]);
     Route::post("/forget-pass", [API\AuthController::class, "changePassword"]);
 });
-
+Route::group(['middleware' => 'api', 'prefix' => 'dashboard'], function () {
+    Route::get("/", [Admin\DashboardController::class, "index"]);
+});
 Route::group(['middleware' => 'api', 'prefix' => 'users'], function () {
     Route::get("/", [API\UserController::class, "index"]);
     Route::post("/", [API\UserController::class, "store"]);
@@ -98,6 +100,14 @@ Route::group(['middleware' => 'api', 'prefix' => 'campaigns'], function () {
     Route::get("/detail", [Admin\CampaignController::class, "show"]);
     Route::delete("/delete/{id}", [Admin\CampaignController::class, "destroy"]);
 });
+
+Route::group(['middleware' => 'api', 'prefix' => 'withdraws'], function () {
+    Route::get("/", [Admin\WithdrawController::class, "index"]);
+    Route::post("/", [Admin\WithdrawController::class, "store"]);
+    Route::get("/detail", [Admin\WithdrawController::class, "show"]);
+    Route::delete("/delete/{id}", [Admin\WithdrawController::class, "destroy"]);
+});
+
 
 Route::group(['middleware' => 'api', 'prefix' => 'testimonials'], function () {
     Route::get("/", [Admin\TestimonialController::class, "index"]);
@@ -191,6 +201,7 @@ Route::prefix('/web')->group(function () {
     });
     Route::group(["prefix" => "contact"], function () {
         Route::get("/", [Website\ContactController::class, "contactPage"]);
+        Route::post("/send-email", [Website\ContactController::class, "sendingEmail"]);
     });
     Route::get("/term-condition", [Website\TermConditionController::class, "termConditionPage"]);
     Route::get("/privacy-policy", [Website\PrivacyPolicyController::class, "privacyPolicyPage"]);
@@ -207,4 +218,8 @@ Route::group(['middleware' => 'api', 'prefix' => 'campaign-web'], function () {
     Route::post("/", [CampaignController::class, "store"]);
     Route::get("/detail", [CampaignController::class, "show"]);
     Route::delete("/delete/{id}", [CampaignController::class, "destroy"]);
+});
+Route::group(['middleware' => 'auth:api', 'prefix' => 'withdraw'], function () {
+    Route::post("/", [Website\Dashboard\WithdrawController::class, "requestWithdraw"]);
+    Route::get("/histories", [Website\Dashboard\WithdrawController::class, "index"]);
 });

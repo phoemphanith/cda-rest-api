@@ -31,7 +31,14 @@ class User extends Authenticatable implements JWTSubject
         'joinAt',
         'totalDonation',
         'loginWith',
-        'memberType'
+        'memberType',
+        'idType',
+        'idNumber',
+        'idCardBack',
+        'idCardFront',
+        'passport',
+        'accountName',
+        'accountNumber'
     ];
 
     /**

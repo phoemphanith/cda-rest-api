@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Website\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\CampaignCategory;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,9 +17,7 @@ class CampaignController extends Controller
     public function getDropdown(Request $request)
     {
         $lang = $request->header("Accept-Language");
-        $categories = Cache::remember('campaign_categories', 120, function () {
-            return CampaignCategory::select("id", "name", "nameKh", "image")->orderBy("ordering", "ASC")->where("isActive", true)->get();
-        });
+        $categories = CampaignCategory::select("id", "name", "nameKh", "image")->orderBy("ordering", "ASC")->where("isActive", true)->get();
         $categories->each(function($query) use ($lang) {
             $query->countProject = Campaign::where("status", "COMPLETE")->where("campaignCategoryId", $query->id)->count();
             $query->name = $lang == "KHM" ? ($query->nameKh ?: $query->name) : $query->name;
@@ -119,6 +118,19 @@ class CampaignController extends Controller
                 'status' => 'failed'
             ], 200);
         }
+        $campaignCategory = CampaignCategory::select("name")->where("id", $dataForm["campaignCategoryId"])->first();
+        $creator = User::where("id", $dataForm["creatorId"])->first();
+        if ($dataForm["status"] == "PENDING") {
+            $this->sendMessage(
+                $dataForm["campaignTile"],
+                $dataForm["status"],
+                $campaignCategory->name,
+                $dataForm["goal"],
+                $creator->name,
+                $creator->phoneNumber ?: $creator->email,
+                request("campaignGallery", [""])[0]
+            );
+        }
 
         return response()->json([
             'message' => 'Save record is successfully.',
@@ -177,5 +189,40 @@ class CampaignController extends Controller
             return false;
         }
         return true;
+    }
+
+    private function sendMessage($title, $status, $category, $goal, $userName, $phoneNumber, $image)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.telegram.org/bot7345727717:AAESLDh_Fu4KmfXVGkcHTXOJXqEFF8kdSPQ/sendphoto',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_POSTFIELDS => array('chat_id' => '-4558906871','photo' => "https://api.cdafund.org/uploads$image",'caption' => "<b>New Campaign</b>
+<b>Status:</b> <u>$status</u>
+<b><u>Campaign Information:</u></b>
+- Title:
+  <code>$title</code>
+- Category:
+  <code>$category</code>
+- Goal:
+  <code>$goal</code>
+<b><u>Create By:</u></b>
+- User Name:
+  <code>$userName</code>
+- User Phone Number:
+  <code>$phoneNumber</code>",'parse_mode' => 'HTML'),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+        Log::info($response);
     }
 }

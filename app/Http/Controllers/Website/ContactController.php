@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ContactEmail;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use mysql_xdevapi\Exception;
 
 class ContactController extends Controller
 {
@@ -28,5 +32,29 @@ class ContactController extends Controller
             'telegramLink' => $content->telegramLink ?: "",
             'linkedinLink' => $content->linkedinLink ?: ""
         ]);
+    }
+
+    public function sendingEmail(Request $request)
+    {
+        try {
+            Mail::to('katomkh1826@gmail.com')->send(new ContactEmail([
+                'name' => request('name', ''),
+                'email' => request('email', ''),
+                'number' => request('number', ''),
+                'subject' => request('subject', ''),
+                'text' => request('text', ''),
+            ]));
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Send email successfully"
+            ]);
+        } catch (Exception $ex) {
+            Log::info($ex);
+            return response()->json([
+                "status" => "fail",
+                "message" => "Send email unsuccessfully"
+            ]);
+        }
     }
 }
