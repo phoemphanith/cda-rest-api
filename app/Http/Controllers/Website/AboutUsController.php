@@ -53,6 +53,7 @@ class AboutUsController extends Controller
         $team->each(function($query) use ($lang) {
             $query->name = $lang == "KHM" ? ($query->nameKh ? $query->nameKh : $query->name ) : $query->name;
             $query->desc = $lang == "KHM" ? ($query->descKh ? $query->descKh : $query->desc ) : $query->desc;
+            $query->position = $lang == "KHM" ? ($query->positionKh ? $query->positionKh : $query->position ) : $query->position;
         });
         return response()->json($team);
     }

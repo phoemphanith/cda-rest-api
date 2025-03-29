@@ -159,6 +159,7 @@ Route::get("/save-image/{dir}", [FileStorageController::class, "previewImage"]);
 Route::prefix('/web')->group(function () {
     Route::get("/feed-list", [Website\FeedController::class, "index"]);
     Route::get("/how-it-work", [Website\WebPageController::class, "howItWork"]);
+    Route::get("/search", [Website\WebPageController::class, "search"]);
     Route::group(["prefix" => "donation"], function() {
         Route::post("/", [DonationController::class, "donation"]);
         Route::get("/donor-list", [DonationController::class, "donationList"]);

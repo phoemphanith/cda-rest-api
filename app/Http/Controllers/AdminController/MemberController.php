@@ -93,6 +93,8 @@ class MemberController extends Controller
         $model["campaignCount"] = $campaignList->count();
         $model["totalRaised"] = $campaignList->sum("totalRaised");
         $model["totalDonors"] = $campaignList->sum("totalDonation");
+        $model["totalWithdraw"] = $campaignList->sum("totalWithdraw");
+        $model["totalBalance"] = $campaignList->sum("balance");
         return response()->json([
             'message' => 'Get user detail success.',
             'status' => 'success',

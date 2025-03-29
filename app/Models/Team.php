@@ -11,6 +11,8 @@ class Team extends Model
     protected $fillable = [
         "name",
         "nameKh",
+        "position",
+        "positionKh",
         "image",
         "desc",
         "descKh",

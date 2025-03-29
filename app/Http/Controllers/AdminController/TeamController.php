@@ -33,6 +33,8 @@ class TeamController extends Controller
         $dataForm = [
             "name" => request("name", ""),
             "nameKh" => request("nameKh", ""),
+            "position" => request("position", ""),
+            "positionKh" => request("positionKh", ""),
             "desc" => request("desc", ""),
             "descKh" => request("descKh", ""),
             "facebookLink" => request("facebookLink", ""),

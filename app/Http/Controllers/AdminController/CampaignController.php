@@ -104,7 +104,7 @@ class CampaignController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLOPT_POSTFIELDS => array('chat_id' => '-4558906871','photo' => "https://api.cdafund.org/uploads$image",'caption' => "<b>New Campaign</b>
+            CURLOPT_POSTFIELDS => array('chat_id' => '-1002461421075','photo' => "https://api.cdafund.org/uploads$image",'caption' => "<b>New Campaign</b>
 <b>Status:</b> <u>$status</u>
 <b><u>Campaign Information:</u></b>
 - Title:

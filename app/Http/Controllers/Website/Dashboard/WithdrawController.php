@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Website\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Withdraw;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class WithdrawController extends Controller
         $id = request("id", 0);
         $withdraw = Withdraw::where("campaignId", $id)->orderBy("requestDate", "DESC")->get();
         $withdraw->each(function ($query) {
-           $query->requestDate = Carbon::parse($query->requestDate)->format('d-M-Y h:m:sA');
+           $query->requestDate = Carbon::parse($query->requestDate)->format('d-M-Y H:i:s');
         });
         $campaign = Campaign::where("id", $id)->first();
         return response()->json(["withdraw" => $withdraw, "campaign" => $campaign]);
@@ -68,13 +69,17 @@ class WithdrawController extends Controller
                 "balance" => $campaign->balance - request("requestAmount", 0),
                 "totalWithdraw" => $campaign->totalWithdraw + request("requestAmount", 0)
             ]);
+            $user = User::where("id", auth()->id())->first();
             $this->sendMessage(
                 $campaign->campaignTile,
                 $item["withdrawStatus"],
                 $item["requestAmount"],
-                Carbon::parse($item["requestDate"])->format('d-M-Y h:m:sA'),
+                Carbon::parse($item["requestDate"])->format('d-M-Y H:i:s'),
                 $item["accountName"],
-                $item["accountNumber"]
+                $item["accountNumber"],
+                $user->name, 
+                $user->phoneNumber,
+                $user->email
             );
             return response()->json([
                 'message' => 'Save record is successfully.',
@@ -89,7 +94,7 @@ class WithdrawController extends Controller
         }
     }
 
-    private function sendMessage($title, $status, $requestAmount, $requestDate, $accountName, $accountNumber)
+    private function sendMessage($title, $status, $requestAmount, $requestDate, $accountName, $accountNumber, $requestBy, $requestPhone, $requestEmail)
     {
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -102,7 +107,7 @@ class WithdrawController extends Controller
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'GET',
             CURLOPT_POSTFIELDS => array(
-                'chat_id' => '-4526161495',
+                'chat_id' => '-1002311900068',
                 'text' => "<b>Campaign:</b>
 <code>$title</code>
 <b>Status:</b> <u>$status</u>
@@ -111,6 +116,10 @@ class WithdrawController extends Controller
   <code>$requestAmount USD</code>
 - Request Date:
   <code>$requestDate</code>
+- Request By:
+  <code>$requestBy</code>
+  <code>$requestPhone</code>
+  <code>$requestEmail</code>
 <b><u>Payment Detail:</u></b>
 - Account Name:
   <code>$accountName</code>
